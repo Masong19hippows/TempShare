@@ -9,6 +9,7 @@ import (
 	"io"
 	rand1 "math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -30,21 +31,20 @@ type folder struct {
 
 // How packages interact with Storage. The root is the root folder and this contains all folders and files
 type Storage struct {
-	root    string
-	Files   []file
+	ID      string
 	Folders []folder
 }
 
 func (s *Storage) Init(user string) {
 	rand1.Seed(time.Now().UnixNano())
-	s.root = encryptAES(user)
+	s.ID = encryptAES(user)
 
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
 
-	s.Create(s.root, &folder{RelPath: "", absPath: filepath.Join(filepath.Dir(ex), "session", "files", "vault")}, nil, true)
+	s.Create(s.ID, &folder{RelPath: "", absPath: filepath.Join(filepath.Dir(ex), "session", "files", "vault")}, nil, true)
 
 }
 
@@ -79,8 +79,8 @@ func (s *Storage) Delete() error {
 		s.Folders[i].Delete()
 	}
 	// Loops through root folder's files
-	for i := 0; i < len(s.Files); i++ {
-		s.Files[i].Delete()
+	for i := 0; i < len(s.Folders[0].Files); i++ {
+		s.Folders[0].Files[i].Delete()
 	}
 	// Deletes the root folder last
 	s.Folders[0].Delete()
@@ -135,15 +135,17 @@ func (f *Storage) Create(name string, fol *folder, fileData []byte, isFolder boo
 
 // Total Deletion of File
 func (f *file) Delete() {
-	e := os.Remove(f.absPath)
-	if e != nil {
-		panic(e)
+	cmd := exec.Command("shred", "-zu", "-n 5", f.absPath)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(cmd)
+		panic(err)
 	}
-
 }
 
 // Total Deletion of Folder
 func (f *folder) Delete() {
+
 	err := os.RemoveAll(f.absPath)
 	if err != nil {
 		panic(err)

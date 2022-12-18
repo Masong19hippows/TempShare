@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	ses "github.com/masong19hippows/tempShare/session"
 )
 
@@ -11,5 +13,7 @@ func main() {
 	test.Storage.Create("Another Folder", &test.Storage.Folders[0], nil, true)
 	test.Storage.Create("testing", &test.Storage.Folders[2], []byte("test string\n"), false)
 	test.Share([]string{"tylonggarten@gmail.com", "masongart@hotmail.com"}, nil)
+	time.Sleep(10 * time.Second)
+	test.Storage.Delete()
 	// test.Share([]string{"masongarten@gmail.com", "tylonggarten@hotmail.com"}, nil)
 }
