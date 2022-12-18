@@ -50,7 +50,7 @@ func (s *Session) ModifyTimer(n string) error {
 
 // Creates Session
 func CreateSession(user string, timer time.Duration) *Session {
-	ses := &Session{User: user, Timer: timer}
+	ses := &Session{User: user, Timer: sessionTimer.Create(timer)}
 	ses.Storage.Init(user)
 	return ses
 }
