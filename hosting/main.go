@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	test := ses.CreateSession("garten323@hotmail.com", "timer placeholder")
+	test := ses.CreateSession("garten323@hotmail.com", 8*time.Second)
 	test.Storage.Create("test file", &test.Storage.Folders[0], []byte("test string\n"), false)
 	test.Storage.Create("New Folder", &test.Storage.Folders[0], nil, true)
 	test.Storage.Create("Another Folder", &test.Storage.Folders[0], nil, true)

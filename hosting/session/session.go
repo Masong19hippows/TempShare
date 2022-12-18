@@ -2,8 +2,10 @@ package session
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/masong19hippows/tempShare/session/files"
+	"github.com/masong19hippows/tempShare/session/sessionTimer"
 )
 
 // Sesion Defintions
@@ -12,7 +14,7 @@ type Session struct {
 	User string
 	files.Storage
 	shares []share
-	timer  string
+	Timer  sessionTimer.Timer
 }
 
 // Function to Share session with emails and send email to users to sign up if not already
@@ -42,13 +44,13 @@ func (s *Session) sendEmails() {
 
 // Modify Session Timeout Timer
 func (s *Session) ModifyTimer(n string) error {
-	s.timer = n
+	s.Timer = sessionTimer.Create(8 * time.Second)
 	return nil
 }
 
 // Creates Session
-func CreateSession(user string, timer string) *Session {
-	ses := &Session{User: user, timer: timer}
+func CreateSession(user string, timer time.Duration) *Session {
+	ses := &Session{User: user, Timer: timer}
 	ses.Storage.Init(user)
 	return ses
 }
