@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	ses "github.com/masong19hippows/TempShare/session"
+	ses "github.com/masong19hippows/TempShare/hosting/session"
 )
 
 func main() {
