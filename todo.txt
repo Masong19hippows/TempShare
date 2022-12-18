@@ -1,0 +1,5 @@
+1. Figure out file encryption
+2. figure out database
+3. sharing with emails and checking for account
+4. email sender
+5. folder/file search
