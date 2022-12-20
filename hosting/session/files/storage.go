@@ -1,17 +1,10 @@
 package files
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
-	"io"
-	rand1 "math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 )
 
 // File type
@@ -35,16 +28,17 @@ type Storage struct {
 	Folders []folder
 }
 
-func (s *Storage) Init(user string) {
-	rand1.Seed(time.Now().UnixNano())
-	s.ID = encryptAES(user)
+func (s *Storage) Init(id string) {
+	fmt.Println(s)
+	s.ID = "test"
+	fmt.Println("am i here")
 
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
 
-	s.Create(s.ID, &folder{RelPath: "", absPath: filepath.Join(filepath.Dir(ex), "session", "files", "vault")}, nil, true)
+	s.Create(id, &folder{RelPath: "", absPath: filepath.Join(filepath.Dir(ex), "session", "files", "vault")}, nil, true)
 
 }
 
@@ -85,33 +79,6 @@ func (s *Storage) Delete() error {
 	// Deletes the root folder last
 	s.Folders[0].Delete()
 	return nil
-}
-
-// Encrypt given string in AES with random key. We don't want the user account stored on the Server, thats dumb
-func encryptAES(plaintext string) string {
-	// create cipher
-	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	var key string
-	for i := 0; i < 32; i++ {
-		key += string(charset[rand1.Intn(len(charset))])
-	}
-	c, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		panic(err)
-	}
-	gcm, err := cipher.NewGCM(c)
-	// if any error generating new GCM
-	// handle them
-	if err != nil {
-		panic(err)
-	}
-
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err)
-	}
-
-	return hex.EncodeToString(gcm.Seal(nonce, nonce, []byte(plaintext), nil))
 }
 
 // Create File or Folder given the name, parent directory, data (if file) and if its a folder

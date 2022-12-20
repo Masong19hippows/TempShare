@@ -1,25 +1,41 @@
 package sessionTimer
 
 import (
+	"errors"
+	"strconv"
 	"time"
 )
 
 type Timer struct {
-	time *time.Timer
+	timer           *time.Timer
+	execute         <-chan time.Time
+	AmountCanExtend time.Duration
 }
 
-// func init() {
-// 	timer1 := time.NewTimer(2 * time.Second)
+func (t *Timer) initTimer() {
+	t.execute = t.timer.C
+}
 
-// 	// The `<-timer1.C` blocks on the timer's channel `C`
-// 	// until it sends a value indicating that the timer
-// 	// fired.
-// 	<-timer1.C
-// 	fmt.Println("Timer 1 fired")
+// Create Timer object and start countdown
+func Create(amount time.Duration) (*Timer, error) {
+	if amount > 24*time.Hour || amount < 1*time.Hour {
+		return nil, errors.New("must be above 1 hour and below 24 hours")
+	}
+	temp := &Timer{timer: time.NewTimer(amount)}
+	temp.initTimer()
+	temp.AmountCanExtend = 24 * time.Hour
 
-// }
+	return temp, nil
+}
 
-func (t *Timer) Create(amount time.Duration) *Timer {
-	temp := &Timer{time: time.NewTimer(amount)}
-	return temp
+func (t *Timer) Modify(newTime time.Duration) error {
+
+	if newTime > t.AmountCanExtend || newTime < 15*time.Hour {
+		return errors.New("must be above 1 hour and below " + strconv.FormatFloat(t.AmountCanExtend.Hours(), 'E', -1, 64) + "hours")
+	} else {
+		t.AmountCanExtend -= newTime
+		t.timer = time.NewTimer(newTime)
+		t.initTimer()
+	}
+	return nil
 }
