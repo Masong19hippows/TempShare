@@ -8,24 +8,19 @@ import (
 
 type Timer struct {
 	timer           *time.Timer
-	execute         <-chan time.Time
+	Execute         <-chan time.Time
 	AmountCanExtend time.Duration
 }
 
-func (t *Timer) initTimer() {
-	t.execute = t.timer.C
-}
-
 // Create Timer object and start countdown
-func Create(amount time.Duration) (*Timer, error) {
-	if amount > 24*time.Hour || amount < 1*time.Hour {
-		return nil, errors.New("must be above 1 hour and below 24 hours")
+func (t *Timer) Init(amount time.Duration) error {
+	if amount > 24*time.Hour || amount < 15*time.Second {
+		return errors.New("timer must be above 15 minutes and below 24 hours")
 	}
-	temp := &Timer{timer: time.NewTimer(amount)}
-	temp.initTimer()
-	temp.AmountCanExtend = 24 * time.Hour
-
-	return temp, nil
+	t.timer = time.NewTimer(amount)
+	t.Execute = t.timer.C
+	t.AmountCanExtend = 24 * time.Hour
+	return nil
 }
 
 func (t *Timer) Modify(newTime time.Duration) error {
@@ -35,7 +30,7 @@ func (t *Timer) Modify(newTime time.Duration) error {
 	} else {
 		t.AmountCanExtend -= newTime
 		t.timer = time.NewTimer(newTime)
-		t.initTimer()
+		t.Execute = t.timer.C
 	}
 	return nil
 }

@@ -16,31 +16,31 @@ import (
 
 // Sesion Defintions
 type Session struct {
-	id string
+	ID string
 	// User string
-	*storage.Storage
-	shares []share
-	*sessionTimer.Timer
+	Storage             *storage.Storage
+	Shares              []share
+	*sessionTimer.Timer `json:"-"`
 }
 
 // Function to Share session with emails and send email to users to sign up if not already
 func (s *Session) Share(emails []string, group []share) {
 	var temp []share
-	copy(s.shares, temp)
+	copy(s.Shares, temp)
 	if len(emails) != 0 {
 		for _, i := range emails {
 			temp = append(temp, share{email: i})
 		}
 	}
 	temp = append(temp, group...)
-	s.shares = temp
+	s.Shares = temp
 
 	s.sendEmails()
 }
 
 // Send emails to all users without account
 func (s *Session) sendEmails() {
-	for _, i := range s.shares {
+	for _, i := range s.Shares {
 		if !(i.haveAccount()) {
 			fmt.Printf("Sending email to %v\n", i.email)
 		}
@@ -50,12 +50,8 @@ func (s *Session) sendEmails() {
 
 // Modify Session Timeout Timer
 func (s *Session) ModifyTimer(t time.Duration) error {
-	temp, err := sessionTimer.Create(t)
-	if err != nil {
-		return err
-	}
-	s.Timer = temp
-	return nil
+	err := s.Timer.Modify(t)
+	return err
 }
 
 // Encrypt given string in AES with random key. We don't want the user account stored on the Server, thats dumb
@@ -86,10 +82,30 @@ func encryptAES(plaintext string) string {
 }
 
 // Creates Session
-func Create(id string, timer time.Duration) *Session {
+func Create(id string, timer time.Duration) (*Session, error) {
 	temp := encryptAES(id)
-	ses := &Session{id: temp}
-	fmt.Println(ses)
+	ses := &Session{ID: temp, Storage: &storage.Storage{}, Timer: &sessionTimer.Timer{}}
 	ses.Storage.Init(temp)
-	return ses
+	err := ses.Timer.Init(timer)
+	if err != nil {
+		return nil, err
+	}
+	// defer ses.Delete()
+	go func() {
+		<-ses.Timer.Execute
+		ses.Delete()
+	}()
+	return ses, nil
+}
+
+// Deleting and nilling Session
+func (s *Session) Delete() {
+	err := s.Storage.Delete()
+	if err != nil {
+		panic(err)
+	}
+	s.ID = ""
+	s.Storage = nil
+	s.Shares = nil
+	s.Timer = nil
 }

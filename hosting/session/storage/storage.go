@@ -1,4 +1,4 @@
-package files
+package storage
 
 import (
 	"fmt"
@@ -29,16 +29,14 @@ type Storage struct {
 }
 
 func (s *Storage) Init(id string) {
-	fmt.Println(s)
-	s.ID = "test"
-	fmt.Println("am i here")
+	s.ID = id
 
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
 
-	s.Create(id, &folder{RelPath: "", absPath: filepath.Join(filepath.Dir(ex), "session", "files", "vault")}, nil, true)
+	s.Create(id, &folder{RelPath: "", absPath: filepath.Join(filepath.Dir(ex), "session", "storage", "vault")}, nil, true)
 
 }
 
